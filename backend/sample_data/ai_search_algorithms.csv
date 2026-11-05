@@ -1,0 +1,11 @@
+Algorithm_Name,Category,Description,Primary_Use
+Inverted_Index,Index_Construction,Maps dictionary terms to postings lists containing document IDs and frequencies,Fast full-text lookup
+Positional_Index,Index_Construction,Maintains integer token offsets for each term occurrence,Phrase and proximity search
+Skip_Pointers,Optimization,Places skip pointers at interval sqrt(L) in postings lists,Sub-linear postings intersection
+Variable_Byte_Encoding,Compression,Byte-aligned compression encoding d-gaps with continuation bits,Index compression
+Elias_Gamma_Encoding,Compression,Bit-level compression for integer d-gaps using unary length and binary offset,Lossless posting compression
+Permuterm_Index,Query_Processing,Rotates circular shifts of vocabulary terms with dollar symbol,Wildcard query resolution
+Levenshtein_Distance,Spelling_Correction,Dynamic programming edit distance computing minimal insertions deletions substitutions,Typo tolerance
+Vector_Space_Model,Ranking,Represents documents and queries as high-dimensional vectors with L2 normalization,Ranked retrieval
+Cosine_Similarity,Ranking,Calculates angular dot product between query vector and document vector,Relevance scoring
+Rocchio_Feedback,Query_Expansion,Modifies query vectors using centroid of relevant and non-relevant documents,Relevance feedback

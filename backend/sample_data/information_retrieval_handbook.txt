@@ -1,0 +1,19 @@
+Information Retrieval and Search Engine Architecture
+
+Chapter 1: Foundations of Information Retrieval
+Information retrieval is the science of searching for material of an unstructured nature within large collections. Modern web search engines index billions of web documents to satisfy user information needs.
+
+Chapter 2: Text Preprocessing and Tokenization
+Text normalization converts raw textual documents into indexable vocabulary tokens. Tokenization isolates word boundaries while handling punctuation, hyphens, and whitespace. Case folding standardizes tokens into lowercase format. Stop word removal filters frequent functional words such as 'the', 'is', 'at', and 'which'. Stemming reduces morphological variations to their grammatical stem using the Porter stemmer.
+
+Chapter 3: Inverted Index and Positional Postings
+The inverted index is the fundamental data structure supporting modern search engines. It maps each distinct vocabulary term to a postings list containing document IDs and term frequencies. Positional indexing records exact token positions within each document, enabling accurate phrase queries and proximity search. Biword indexes accelerate common two-word phrase searches.
+
+Chapter 4: Index Optimization and Compression
+Postings lists are compressed using gap encoding, which stores differences between consecutive document IDs rather than absolute integers. Variable Byte encoding compresses d-gaps by utilizing seven bits per byte for numerical payloads. Elias Gamma coding represents integers through unary length codes followed by binary offsets. Dictionary-as-string and front coding compress vocabulary lexicons to conserve memory.
+
+Chapter 5: Boolean and Ranked Retrieval
+Boolean retrieval evaluates queries using logical operators including AND, OR, and NOT. Postings list intersection utilizes skip pointers to leap across irrelevant postings in sub-linear time. Ranked retrieval scores documents using the Vector Space Model and TF-IDF weighting. Cosine similarity calculates the normalized angular distance between query vectors and document vectors.
+
+Chapter 6: Advanced Search Improvements
+Query expansion automatically augments user search queries using Rocchio relevance feedback and pseudo-relevance feedback. Latent Semantic Indexing uncovers hidden conceptual relationships through Singular Value Decomposition. Search engine effectiveness is evaluated using Precision, Recall, Mean Average Precision, and R-Precision benchmarks.
