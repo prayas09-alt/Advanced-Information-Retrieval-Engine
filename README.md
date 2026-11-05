@@ -1,179 +1,316 @@
-# Advanced Information Retrieval (IR) Search Engine
+# 🔍 Advanced Information Retrieval Search Engine
 
-A full-stack, production-grade **Information Retrieval Search Engine** that allows users to upload any document (`.txt`, `.pdf`, `.docx`, `.csv`), enter search queries, and search with genuine IR algorithms while viewing live, microsecond execution logs in a **VS Code-styled terminal interface**.
-
----
-
-## 1. System Overview
-
-- **Real-Time Execution Terminal**: Streams live events from the backend via WebSockets / Server-Sent Events (SSE). Every method displays status (`COMPLETED`, `RUNNING`, `SKIPPED`, `FAILED`), timestamps, execution duration, and clickable algorithm inspectors.
-- **Strict Method Execution Fidelity**: Indexing-time methods run once during file upload; query-time methods activate dynamically based on the query syntax (single-word, phrase, boolean, wildcard, proximity, ranked). Skipped methods explain *why* they were skipped for that specific query.
-- **Full Support for 45+ Information Retrieval Methods**: Every single method from IR theory is genuinely implemented without mock or dummy code.
+A full-stack, production-grade **Information Retrieval (IR) Search Engine** built with React + FastAPI. Upload any document, run intelligent searches using 45+ genuine IR algorithms, and watch every method execute in real time through a **VS Code-style live terminal**.
 
 ---
 
-## 2. Technology Stack
+## ✨ Features
 
-### Frontend
-- **Framework**: React.js 19 with TypeScript
-- **Bundler & Dev Server**: Vite 8
-- **Styling**: Tailwind CSS v4 (Dark Navy / Charcoal developer theme: `#090d16`, `#0f1422`, `#1e293b`, Cyan accents)
-- **Icons**: Lucide React
-- **Animations**: Framer Motion
-- **Streaming**: Native WebSocket Client with automatic Server-Sent Events (SSE) fallback
-
-### Backend
-- **Framework**: Python 3.13, FastAPI, Uvicorn
-- **NLP & Parsing**: Porter Stemmer, pypdf (PDF parsing), python-docx (DOCX parsing), csv/pandas (CSV parsing)
-- **Scientific Computing**: NumPy, Scikit-Learn (TruncatedSVD for Latent Semantic Indexing), SciPy
-- **Protocols**: Async WebSockets (`/ws/execution`), Server-Sent Events (`/api/stream/events`), REST API
+- 📄 **Multi-format Document Upload** — TXT, PDF, DOCX, CSV with drag-and-drop
+- 🧠 **45+ IR Algorithms** — Every method genuinely implemented, never mocked
+- 🖥️ **Live Execution Terminal** — Real-time WebSocket log stream with timestamps
+- 🔎 **Rich Query Support** — Single word, phrase, boolean, wildcard, proximity
+- 📊 **Search Analytics** — TF-IDF scores, cosine similarity, ranking breakdown
+- 🔧 **IR Pipeline Dashboard** — Visual pipeline with per-method status and explanations
+- 🧪 **Evaluation Metrics** — Precision, Recall, F1, MAP, R-Precision
 
 ---
 
-## 3. The 45 Information Retrieval Methods Implemented
+## 🛠️ Tech Stack
 
-### A. Text Processing and Normalization
-1. **Document Parsing**: Multi-format text extraction (TXT, PDF, DOCX, CSV) and segmentation into discrete passages, tracking line and page numbers.
-2. **Tokenization**: Word segmentation with punctuation isolation, tracking character spans and token positions.
-3. **Case Folding**: Standardizes characters to unified lowercase for case-insensitive matching.
-4. **Stop Word Removal**: Filters out 179 high-frequency, low-entropy functional words.
-5. **Stemming**: Complete, authentic implementation of the Porter Stemming Algorithm (1980).
-6. **Document ID Assignment**: Assigns sequential integer identifiers (`doc_0`, `doc_1`, ...) to each segmented passage.
-
-### B. Index Construction
-7. **Term-Document Pair Generation**: Emits flat `(term, doc_id)` tuples from tokenized segments.
-8. **Sorting**: Lexicographically sorts pairs by term as primary key and doc_id as secondary key.
-9. **Merging Duplicate Terms**: Groups identical pairs into single postings and computes term frequencies.
-10. **Term Frequency Calculation**: Computes $tf(t, d)$ across all terms and documents.
-11. **Dictionary Construction**: Vocabulary lexicon mapping each unique term to document frequency ($df_t$) and postings list pointer.
-12. **Inverted Index Construction**: Core mapping of dictionary terms to ordered postings lists.
-13. **Postings List Construction**: Linked and array-backed postings nodes containing `doc_id` and $tf$.
-14. **Biword Index**: Indexes consecutive token pairs $(w_i, w_{i+1}) \to doc\_ids$ for accelerated 2-word phrase lookup.
-15. **Positional Index**: Stores exact token offset positions: $term \to \{doc\_id: [pos_0, pos_1, \dots]\}$ for exact phrase matching and arbitrary proximity verification.
-16. **Skip Pointers**: Augments postings lists with skip pointers at $\lfloor\sqrt{L}\rfloor$ intervals for fast sub-linear intersection.
-
-### C. Index Optimization and Compression
-17. **Gap Encoding**: Computes difference d-gaps ($d_1, d_2 - d_1, d_3 - d_2, \dots$) to minimize integer magnitudes.
-18. **Variable Byte (VB) Encoding**: Byte-aligned compression using 7 payload bits and 1 continuation bit (achieving 75%+ space savings).
-19. **Elias Gamma Encoding**: Bit-level compression representing numbers as unary length followed by binary offset.
-20. **Dictionary-as-String**: Concatenates lexicon terms into a single string buffer with offset pointers.
-21. **Blocking**: Groups dictionary terms into blocks of size $k=4$, storing string offsets only for block heads.
-22. **Front Coding**: Prefix compression on adjacent sorted terms sharing common roots.
-23. **Dynamic Indexing**: In-memory auxiliary index with periodic logarithmic merge into main index.
-
-### D. Query Processing and Search
-24. **Query Parsing**: Analyzes query syntax into AST detecting Boolean clauses (`AND`, `OR`, `NOT`), quoted phrases (`"..."`), proximity (`NEAR/k`), and wildcards (`*`).
-25. **Query Tokenization**: Tokenizes query and applies identical normalization (case folding, stop words, stemming).
-26. **Wildcard Query Processing**: Evaluates prefix, suffix, and infix wildcard patterns.
-27. **Permuterm Index**: Rotated circular shift index terminated with `$` for $O(1)$ wildcard candidate lookup.
-28. **Bigram / N-gram Processing**: Splits wildcard queries into character bigrams, retrieves candidates, and applies regex post-filtering.
-29. **Spelling Correction**: Suggests closest vocabulary words for misspelled or out-of-vocabulary query terms.
-30. **Edit Distance**: Levenshtein distance dynamic programming matrix + Weighted Edit Distance (keyboard adjacency penalty).
-31. **N-gram Overlap**: Character trigram overlap similarity between terms.
-32. **Jaccard Similarity**: Set coefficient $\frac{|A \cap B|}{|A \cup B|}$ on character n-grams + Soundex phonetic matching.
-33. **Phrase Query Processing**: Verifies exact consecutive token offsets ($pos_{i+1} = pos_i + 1$) using the Positional Index.
-34. **Proximity Search**: Verifies whether two terms appear within window distance $k$ ($|pos_1 - pos_2| \le k$).
-35. **Boolean Retrieval**: Set-theoretic logic evaluation supporting conjunctive `AND`, disjunctive `OR`, and difference `NOT`.
-36. **Postings List Intersection**: Fast two-pointer intersection leaping forward using skip pointers.
-37. **Query Optimization**: Orders conjunctive Boolean terms in ascending order of document frequency ($df$) to minimize intermediate sets.
-
-### E. Ranked Retrieval
-38. **Term Frequency (TF)**: Sublinear weighting $1 + \log_{10}(tf)$ when $tf > 0$.
-39. **Inverse Document Frequency (IDF)**: Collection rarity $\log_{10}(N / df_t)$.
-40. **TF-IDF**: Composite weighting $w_{t,d} = (1 + \log_{10}(tf_{t,d})) \times \log_{10}(N / df_t)$.
-41. **Vector Space Model**: High-dimensional vector space with Euclidean ($L_2$) length normalization.
-42. **Cosine Similarity**: Angular dot product $\cos(\vec{q}, \vec{d}) = \frac{\vec{q} \cdot \vec{d}}{\|\vec{q}\| \|\vec{d}\|}$ using Accumulator tables.
-43. **Document Ranking**: Sorts candidate passages in descending order of relevance score.
-44. **Top-K Retrieval**: Min-heap priority queue selection of the top $K$ scoring passages without full collection sorting.
-
-### F. Search Improvement and Evaluation
-45. **Query Expansion & Relevance Feedback**: Rocchio algorithm $\vec{q}_m = \alpha \vec{q}_0 + \beta \frac{1}{|D_r|}\sum \vec{d} - \gamma \frac{1}{|D_{nr}|}\sum \vec{d}$ and Pseudo-Relevance Feedback (PRF).
-46. **Latent Semantic Indexing (LSI)**: Truncated SVD dimensionality reduction uncovering latent semantic concepts.
-47. **Cluster Pruning**: $\sqrt{N}$ leader-follower clustering for fast approximate Top-K search.
-48. **Zone Weighting**: Linear combination weighting matches in title/header zones higher than regular body text.
-49. **Evaluation Metrics**: Formal IR benchmark calculating Precision@K, Recall@K, F-measure ($F_1$), Mean Average Precision (MAP), and R-Precision.
+| Layer | Technology |
+|---|---|
+| **Frontend** | React 19, TypeScript, Vite, Tailwind CSS v4, Framer Motion, Lucide Icons |
+| **Backend** | Python 3.13, FastAPI, Uvicorn |
+| **NLP / IR** | NLTK (Porter Stemmer), pypdf, python-docx, NumPy, scikit-learn |
+| **Streaming** | WebSockets (`/ws/execution`) + SSE fallback (`/api/stream/events`) |
 
 ---
 
-## 4. Installation and Setup
+## 🚀 Getting Started
 
 ### Prerequisites
-- **Python**: 3.10+ (tested on Python 3.13)
-- **Node.js**: v18+ (tested on v22)
-- **npm**: 9+
 
-### Backend Installation
-
-1. Open a terminal and navigate to the project root:
-   ```bash
-   cd c:/Users/DELL/Desktop/search
-   ```
-
-2. Install Python dependencies:
-   ```bash
-   pip install -r backend/requirements.txt
-   ```
-
-3. Run the backend unit and integration test suite:
-   ```bash
-   python backend/test_ir.py
-   python backend/test_e2e.py
-   ```
-
-4. Start the FastAPI backend server:
-   ```bash
-   python backend/main.py
-   ```
-   The backend will start at `http://127.0.0.1:8000`. Swagger API docs are available at `http://127.0.0.1:8000/docs`.
+- Python 3.10+ (tested on 3.13)
+- Node.js v18+ (tested on v22)
+- npm 9+
 
 ---
 
-### Frontend Installation
+### 1. Clone the Repository
 
-1. In a separate terminal, navigate to the `frontend/` directory:
-   ```bash
-   cd c:/Users/DELL/Desktop/search/frontend
-   ```
-
-2. Install npm dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Start the Vite React development server:
-   ```bash
-   npm run dev
-   ```
-   Open your browser at `http://localhost:5173`.
+```bash
+git clone https://github.com/prayas09-alt/Advanced-Information-Retrieval-Engine.git
+cd Advanced-Information-Retrieval-Engine
+```
 
 ---
 
-## 5. Working Example Walkthrough
+### 2. Backend Setup
 
-1. **Load or Upload a Document**:
-   - Drag and drop your own `.txt`, `.pdf`, `.docx`, or `.csv` file into the upload zone.
-   - Or click **One-Click Samples** to load `information_retrieval_handbook.txt` or `computer_science_encyclopedia.docx`.
-   - Watch the **Live Execution Terminal** stream indexing events in real time:
-     `Document Parsing` $\to$ `Tokenization` $\to$ `Case Folding` $\to$ `Stop Words` $\to$ `Stemming` $\to$ `Inverted Index` $\to$ `Variable Byte Compression`.
-2. **Execute a Ranked Search**:
-   - Enter `information retrieval` and click **Search**.
-   - See matching passages with highlighted keywords, exact line/page references, Cosine similarity percentage, and TF-IDF weights.
-   - Click **View TF/IDF Breakdown** on any result to inspect the exact formula contributions.
-3. **Execute an Exact Phrase Search**:
-   - Enter `"information retrieval"` with quotes.
-   - The terminal logs `Method 33: Phrase Query Processing` verifying consecutive token offsets in the Positional Index.
-4. **Execute a Boolean Search**:
-   - Enter `inverted AND index NOT compression`.
-   - The terminal logs `Method 35: Boolean Retrieval`, `Method 36: Postings Intersection`, and `Method 37: Query Optimization`.
-5. **Execute a Wildcard Search**:
-   - Enter `retriev*`.
-   - The terminal logs `Method 26: Wildcard Processing`, `Method 27: Permuterm Index`, and `Method 28: Bigram Post-Filtering`.
-6. **Execute a Typo Search**:
-   - Enter `retreival`.
-   - Notice the spell checker banner: *"Did you mean: 'retrieval'?"* using Levenshtein edit distance and Soundex.
-7. **Inspect any Method**:
-   - Click on any log event in the terminal or card in the **IR Pipeline** tab to open the full mathematical explanation, formulas, and trace payloads.
-8. **Run Benchmark**:
-   - Click the **Benchmark** button in the top navigation to evaluate Precision, Recall, F1, MAP, and R-Precision across test queries.
-#   A d v a n c e d - I n f o r m a t i o n - R e t r i e v a l - E n g i n e  
- 
+```bash
+# Install Python dependencies
+pip install -r backend/requirements.txt
+
+# (Optional) Run tests to verify all 45 IR methods
+python backend/test_ir.py
+python backend/test_e2e.py
+
+# Start the backend server
+python backend/main.py
+```
+
+Backend runs at → `http://127.0.0.1:8000`  
+Swagger API docs → `http://127.0.0.1:8000/docs`
+
+---
+
+### 3. Frontend Setup
+
+```bash
+# In a separate terminal
+cd frontend
+
+npm install
+npm run dev
+```
+
+Frontend runs at → `http://localhost:5173`
+
+---
+
+### ⚡ One-Command Start (Windows)
+
+```bash
+run_all.bat
+```
+
+This opens two terminals — one for the backend, one for the frontend.
+
+---
+
+## 📂 Project Structure
+
+```
+search/
+├── backend/
+│   ├── main.py                  # FastAPI app, WebSocket, REST routes
+│   ├── execution_logger.py      # Live event broadcaster (49-method catalog)
+│   ├── text_extractor.py        # TXT / PDF / DOCX / CSV parser
+│   ├── preprocessing.py         # Methods 1–6 (tokenize, stem, stop words)
+│   ├── indexer.py               # Methods 7–16 (inverted/positional index)
+│   ├── compression.py           # Methods 17–23 (VB, Elias Gamma, front coding)
+│   ├── query_processor.py       # Methods 24–25, 33–34
+│   ├── wildcard_search.py       # Methods 26–28 (permuterm, bigram)
+│   ├── spelling_correction.py   # Methods 29–32 (Levenshtein, Soundex, Jaccard)
+│   ├── boolean_retrieval.py     # Methods 35–37
+│   ├── tfidf.py                 # Methods 38–40
+│   ├── vector_space.py          # Method 41
+│   ├── cosine_similarity.py     # Method 42
+│   ├── ranking.py               # Methods 43–44
+│   ├── query_expansion.py       # Method 45 (Rocchio PRF)
+│   ├── advanced_ir.py           # Methods 46–48 (LSI, Cluster Pruning, Zone Weighting)
+│   ├── evaluation.py            # Method 49 (Precision, Recall, MAP, F1)
+│   ├── requirements.txt
+│   ├── test_ir.py
+│   └── test_e2e.py
+│
+├── frontend/
+│   ├── src/
+│   │   ├── App.tsx
+│   │   ├── components/
+│   │   │   ├── FileUpload.tsx
+│   │   │   ├── SearchBar.tsx
+│   │   │   ├── SearchResults.tsx
+│   │   │   ├── LiveTerminal.tsx
+│   │   │   ├── MethodDashboard.tsx
+│   │   │   ├── PipelineVisualizer.tsx
+│   │   │   ├── SearchAnalytics.tsx
+│   │   │   └── ...
+│   │   ├── services/
+│   │   │   ├── api.ts
+│   │   │   └── websocket.ts
+│   │   └── types/ir.ts
+│   ├── package.json
+│   └── vite.config.ts
+│
+├── run_all.bat
+├── run_backend.bat
+├── run_frontend.bat
+└── README.md
+```
+
+---
+
+## 🧠 45 IR Methods Implemented
+
+### A — Text Processing & Normalization
+| # | Method | Description |
+|---|---|---|
+| 1 | Document Parsing | Multi-format extraction with line/page tracking |
+| 2 | Tokenization | Word segmentation with character span tracking |
+| 3 | Case Folding | Lowercase normalization |
+| 4 | Stop Word Removal | Filters 179 high-frequency words |
+| 5 | Stemming | Full Porter Stemming Algorithm (1980) |
+| 6 | Document ID Assignment | Sequential passage identifiers |
+
+### B — Index Construction
+| # | Method | Description |
+|---|---|---|
+| 7 | Term-Document Pair Generation | Flat `(term, doc_id)` tuples |
+| 8 | Sorting | Lexicographic ordering by term then doc_id |
+| 9 | Merging Duplicate Terms | Groups pairs and computes frequencies |
+| 10 | Term Frequency Calculation | `tf(t, d)` across all documents |
+| 11 | Dictionary Construction | Vocabulary → `df` and postings pointer |
+| 12 | Inverted Index Construction | Core term → postings mapping |
+| 13 | Postings List Construction | Linked nodes with `doc_id` and `tf` |
+| 14 | Biword Index | Consecutive token pair `(w_i, w_i+1)` → doc_ids |
+| 15 | Positional Index | `term → {doc_id: [pos_0, pos_1, ...]}` |
+| 16 | Skip Pointers | √L interval skip augmentation |
+
+### C — Compression
+| # | Method | Description |
+|---|---|---|
+| 17 | Gap Encoding | d-gaps to minimize integer magnitudes |
+| 18 | Variable Byte Encoding | 7-bit payload + 1 continuation bit (75%+ savings) |
+| 19 | Elias Gamma Encoding | Bit-level unary + binary compression |
+| 20 | Dictionary-as-String | Single buffer with offset pointers |
+| 21 | Blocking | Block heads with k=4 grouping |
+| 22 | Front Coding | Prefix compression on sorted terms |
+| 23 | Dynamic Indexing | Auxiliary index with log-merge |
+
+### D — Query Processing
+| # | Method | Description |
+|---|---|---|
+| 24 | Query Parsing | AST for boolean, phrase, proximity, wildcard |
+| 25 | Query Tokenization | Normalized query terms |
+| 26 | Wildcard Query Processing | `retriev*` expansion |
+| 27 | Permuterm Index | Rotation-based wildcard lookup |
+| 28 | Bigram / N-gram Processing | Bigram post-filtering |
+| 29 | Spelling Correction | Levenshtein + Soundex |
+| 30 | Edit Distance | Weighted Levenshtein distance |
+| 31 | N-gram Overlap | Bigram set comparison |
+| 32 | Jaccard Similarity | Overlap coefficient for suggestions |
+| 33 | Phrase Query Processing | Consecutive position verification |
+| 34 | Proximity Search | NEAR/k operator using positional index |
+| 35 | Boolean Retrieval | AND, OR, NOT evaluation |
+| 36 | Postings List Intersection | Two-pointer with skip pointers |
+| 37 | Query Optimization | Ascending `df` ordering |
+
+### E — Ranked Retrieval
+| # | Method | Description |
+|---|---|---|
+| 38 | Term Frequency (TF) | `1 + log10(tf)` sublinear weighting |
+| 39 | Inverse Document Frequency (IDF) | `log10(N / df_t)` |
+| 40 | TF-IDF | Composite term weight |
+| 41 | Vector Space Model | L2-normalized document vectors |
+| 42 | Cosine Similarity | Angular dot product with accumulator tables |
+| 43 | Document Ranking | Descending relevance sort |
+| 44 | Top-K Retrieval | Min-heap priority queue selection |
+
+### F — Evaluation & Improvement
+| # | Method | Description |
+|---|---|---|
+| 45 | Query Expansion (Rocchio PRF) | α·q + β·relevant − γ·non-relevant |
+| 46 | Latent Semantic Indexing (LSI) | Truncated SVD dimensionality reduction |
+| 47 | Cluster Pruning | √N leader-follower approximate search |
+| 48 | Zone Weighting | Title/header zones weighted higher |
+| 49 | Evaluation Metrics | Precision, Recall, F1, MAP, R-Precision |
+
+---
+
+## 🔎 Supported Query Types
+
+| Query | Example | Methods Activated |
+|---|---|---|
+| Single word | `retrieval` | Inverted Index, TF-IDF, Cosine |
+| Multi-word | `information retrieval` | Ranked Retrieval, VSM |
+| Exact phrase | `"information retrieval"` | Positional Index, Phrase Processing |
+| Boolean | `inverted AND index NOT compression` | Boolean Retrieval, Postings Intersection |
+| Wildcard | `retriev*` | Permuterm Index, Bigram Filter |
+| Proximity | `information NEAR/3 retrieval` | Positional Index, Proximity Search |
+| Misspelled | `retreival` | Spelling Correction, Edit Distance |
+
+---
+
+## 🖥️ Live Terminal Output Example
+
+```
+[08:45:01] SYSTEM    Search engine initialized
+[08:45:02] FILE      document.pdf uploaded successfully (42 KB)
+[08:45:02] PARSER    Extracting text from PDF — 318 passages extracted
+[08:45:03] TOKENIZER Tokenizing 4,821 tokens
+[08:45:03] NORMALIZE Applying case folding
+[08:45:03] STOPWORDS Removing 179 stop words — 2,944 tokens remain
+[08:45:03] STEMMER   Porter Stemming applied — 1,203 unique stems
+[08:45:04] INDEXER   Building inverted index — 1,203 terms
+[08:45:04] INDEXER   Building positional index
+[08:45:04] COMPRESS  Variable Byte Encoding — 75.2% space saved
+[08:45:05] QUERY     Received: "information retrieval"
+[08:45:05] PARSER    Detected: ranked multi-word query
+[08:45:05] SEARCH    Postings retrieved for 2 terms
+[08:45:06] RANKING   TF-IDF + Cosine Similarity computed
+[08:45:06] RANKING   Top-10 passages selected via min-heap
+[08:45:06] COMPLETE  Search completed in 0.043s — 10 results
+```
+
+---
+
+## 📊 Search Result Card
+
+Each result displays:
+
+- Matched passage with highlighted keywords
+- Line number (TXT) or page number (PDF)
+- **TF**, **IDF**, **TF-IDF** scores
+- **Cosine similarity** percentage
+- Ranking position
+
+---
+
+## 🧪 Running Tests
+
+```bash
+# Unit tests — verifies all 49 IR methods
+python backend/test_ir.py
+
+# End-to-end API tests
+python backend/test_e2e.py
+```
+
+Expected output: all tests pass, `EXIT 0`.
+
+---
+
+## 📸 UI Overview
+
+| Panel | Description |
+|---|---|
+| **Top Nav** | App logo, file status, system status |
+| **Left Sidebar** | Search history, uploaded files, IR method list |
+| **Main Content** | Search bar, results, analytics dashboard |
+| **Right Panel** | Live execution terminal + pipeline progress |
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Commit your changes: `git commit -m "feat: your feature"`
+4. Push: `git push origin feature/your-feature`
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+MIT License — feel free to use, modify, and distribute.
+
+---
+
+## 👤 Author
+
+**Prayas** — [@prayas09-alt](https://github.com/prayas09-alt)
+
+> Built as a comprehensive demonstration of Information Retrieval theory applied in a real-world full-stack application.
